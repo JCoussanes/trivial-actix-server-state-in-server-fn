@@ -2,6 +2,20 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
+#[server(TestSFn)]
+pub async fn test() -> Result<(), ServerFnError> {
+    use actix_web::web::Data;
+    use leptos::logging;
+    use leptos_actix::*;
+
+    logging::log!("Test Called");
+
+    let data: Data<crate::ServerState> = extract().await?;
+
+    logging::log!("State content : {:#?}", data.foo);
+    Ok(())
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -30,13 +44,15 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    // Creates a reactive value to update the button
-    let (count, set_count) = create_signal(0);
-    let on_click = move |_| set_count.update(|count| *count += 1);
+    let on_click = move |_| {
+        spawn_local(async {
+            let _ = test().await;
+        });
+    };
 
     view! {
         <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
+        <button on:click=on_click>"Click Me"</button>
     }
 }
 

@@ -1,3 +1,7 @@
+pub struct ServerState {
+    pub foo: String,
+}
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -25,7 +29,9 @@ async fn main() -> std::io::Result<()> {
             // serve the favicon from /favicon.ico
             .service(favicon)
             .leptos_routes(leptos_options.to_owned(), routes.to_owned(), App)
-            .app_data(web::Data::new(leptos_options.to_owned()))
+            .app_data(web::Data::new(ServerState {
+                foo: "test".to_string(),
+            }))
         //.wrap(middleware::Compress::default())
     })
     .bind(&addr)?
