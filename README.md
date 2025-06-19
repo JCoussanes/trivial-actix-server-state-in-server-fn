@@ -1,72 +1,57 @@
-<picture>
-    <source srcset="https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_Solid_White.svg" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_RGB.svg" alt="Leptos Logo">
-</picture>
+# Minimal Example – Leptos ServerFn + Actix State Behavior
 
-# Leptos Starter Template
+This repository contains a **non-functional, minimal example** built to illustrate an issue I encountered when using server functions in [Leptos](https://leptos.dev) and Actix Web state.
 
-This is a template for use with the [Leptos](https://github.com/leptos-rs/leptos) web framework and the [cargo-leptos](https://github.com/akesson/cargo-leptos) tool.
+It is based on the official Leptos starter template.
 
-## Creating your template repo
+---
 
-If you don't have `cargo-leptos` installed you can install it with
+## ❗ Disclaimer
 
-`cargo install cargo-leptos --locked`
+⚠️ This project is **not meant to be usefull**, it is a **minimal reproduction case** that demonstrate a compiler behavior I encountered. See below for context.
 
-Then run
+---
 
-`cargo leptos new --git leptos-rs/start`
+## 🧠 Context
 
-to generate a new project template (you will be prompted to enter a project name).
+While working on a Leptos + Actix project, I got this error when compiling the front side of the app : 
 
-`cd {projectname}`
+```bash
+Front compiling WASM
+    Compiling trivial-actix-server-state-in-server-fn v0.1.0 
+error[E0412]: cannot find type `ServerState` in the crate root
+  --> src/app.rs:13:27
+   |
+13 |     let data: Data<crate::ServerState> = extract().await?;
+   |                           ^^^^^^^^^^^ not found in the crate root
 
-to go to your newly created project.
-
-Of course, you should explore around the project structure, but the best place to start with your application code is in `src/app.rs`.
-
-## Running your project
-
-`cargo leptos watch`  
-By default, you can access your local project at `http://localhost:3000`
-
-## Installing Additional Tools
-
-By default, `cargo-leptos` uses `nightly` Rust, `cargo-generate`, and `sass`. If you run into any trouble, you may need to install one or more of these tools.
-
-1. `rustup toolchain install nightly --allow-downgrade` - make sure you have Rust nightly
-2. `rustup target add wasm32-unknown-unknown` - add the ability to compile Rust to WebAssembly
-3. `cargo install cargo-generate` - install `cargo-generate` binary (should be installed automatically in future)
-4. `npm install -g sass` - install `dart-sass` (should be optional in future)
-
-## Executing a Server on a Remote Machine Without the Toolchain
-After running a `cargo leptos build --release` the minimum files needed are:
-
-1. The server binary located in `target/server/release`
-2. The `site` directory and all files within located in `target/site`
-
-Copy these files to your remote server. The directory structure should be:
-```text
-leptos_start
-site/
+For more information about this error, try `rustc --explain E0412`.
+error: could not compile `trivial-actix-server-state-in-server-fn` (lib) due to 1 previous error
 ```
-Set the following environment variables (updating for your project as needed):
-```sh
-export LEPTOS_OUTPUT_NAME="leptos_start"
-export LEPTOS_SITE_ROOT="site"
-export LEPTOS_SITE_PKG_DIR="pkg"
-export LEPTOS_SITE_ADDR="127.0.0.1:3000"
-export LEPTOS_RELOAD_PORT="3001"
-```
-Finally, run the server binary.
 
-## Notes about CSR and Trunk:
-Although it is not recommended, you can also run your project without server integration using the feature `csr` and `trunk serve`:
+This minimal repo is a trivial version of my project in order to better understand the problem and potentially open an issue or ask for help.
 
-`trunk serve --open --features csr`
+The proble was that the compiler check the body of server functions even if it doesn't compile it for the WASM (i.e. the lib target). 
 
-This may be useful for integrating external tools which require a static site, e.g. `tauri`.
+Therefore, because `ServerState` is declared in `main.rs` the compiler doesn't find it's declaration on the lib target. Moving `ServerState` declaration to the app.rs was the way to solve this problem.
 
-## Licensing
 
-This template itself is released under the Unlicense. You should replace the LICENSE for your own application with an appropriate license if you plan to release it publicly.
+---
+
+## 🛠️ What It Shows
+
+- A compilation failure using an Actix state inside a server function
+- A clean minimal repro for debugging, asking for help, or reporting issues
+
+---
+
+## 🔍 Notes
+
+- This is a **debugging artifact**, not a real application.
+- If you’re looking for a working Leptos + Actix template, start from [the official starter](https://github.com/leptos-rs/leptos/tree/main/examples/leptos_actix).
+
+---
+
+## 📄 License
+
+Unlicense
